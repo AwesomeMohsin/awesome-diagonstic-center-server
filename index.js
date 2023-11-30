@@ -47,6 +47,7 @@ async function run() {
     const Appointment = client.db("diagnostic-center-db").collection("appointments");
     const Payment = client.db("diagnostic-center-db").collection("payments");
     const Banners = client.db("diagnostic-center-db").collection("banners");
+    const Recommendations = client.db("diagnostic-center-db").collection("recommendations");
 
     // middlewares
     const verifyToken = (req, res, next) => {
@@ -123,9 +124,9 @@ async function run() {
 
     app.get('/users/admin/:email', verifyToken, async (req, res) => {
       const email = req.params.email;
-      if (email !== req.user.email) {
-        return res.status(403).send({ message: 'Forbidden' })
-      }
+      // if (email !== req.user.email) {
+      //   return res.status(403).send({ message: 'Forbidden' })
+      // }
       const query = { email: email };
       const user = await User.findOne(query);
       let admin = false;
@@ -138,7 +139,7 @@ async function run() {
 
 
     // get single user
-    app.get("/users/:email", verifyToken, async (req, res) => {
+    app.get("/users/:email", async (req, res) => {
       try {
         const user = req.params;
         const filter = { email: user.email };
@@ -662,6 +663,24 @@ async function run() {
       catch (error) {
         res.status(400).json({
           status: "fail to delete an appointment",
+          message: error.message,
+        });
+      }
+    });
+
+     // get all recommendations
+     app.get("/recommendations", async (req, res) => {
+      try {
+
+        const result = await Recommendations.find().toArray();
+        res.status(201).json({
+          status: "success",
+          message: "All Recommendations get successfully",
+          result,
+        });
+      } catch (error) {
+        res.status(400).json({
+          status: "fail to get all Recommendations",
           message: error.message,
         });
       }
