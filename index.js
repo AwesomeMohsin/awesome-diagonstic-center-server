@@ -122,7 +122,7 @@ async function run() {
       }
     });
 
-    app.get('/users/admin/:email', verifyToken, async (req, res) => {
+    app.get('/users/admin/:email', async (req, res) => {
       const email = req.params.email;
       // if (email !== req.user.email) {
       //   return res.status(403).send({ message: 'Forbidden' })
@@ -142,7 +142,8 @@ async function run() {
     app.get("/users/:email", async (req, res) => {
       try {
         const user = req.params;
-        const filter = { email: user.email };
+        console.log(user?.email);
+        const filter = { email: user?.email };
         const result = await User.findOne(filter)
         res.status(201).json({
           status: "success",
