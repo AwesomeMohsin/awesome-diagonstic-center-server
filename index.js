@@ -95,7 +95,104 @@ async function run() {
       }
     });
 
-   
+    // user related apis
+    app.post("/users", async (req, res) => {
+      try {
+        const user = req.body;
+        const query = { email: user.email };
+        const existingUser = await User.findOne(query);
+        if (existingUser) {
+          return res.status(200).send({
+            status: "success",
+            message: "User already exists",
+            result: {
+              acknowledged: true,
+              insertedId: null,
+            },
+          });
+        }
+        user.status = true;
+        user.role = "patient";
+        const result = await User.insertOne(user);
+        res.status(201).json({
+          status: "success",
+          message: "Account created successfully",
+          result,
+        });
+      } catch (error) {
+        res.status(400).json({
+          status: "fail",
+          message: error.message,
+        });
+      }
+    });
+
+    app.get('/users/admin/:email', verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.user.email) {
+        return res.status(403).send({ message: 'Forbidden' })
+      }
+      const query = { email: email };
+      const user = await User.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === 'admin'
+      }
+      res.send({ admin });
+
+    })
+
+
+    // get single user
+    app.get("/users/:email", async (req, res) => {
+      try {
+        const user = req.params;
+        const filter = { email: user.email };
+        const result = await User.findOne(filter)
+        res.status(201).json({
+          status: "success",
+          message: "User found successfully",
+          result,
+        });
+      }
+      catch (error) {
+        res.status(400).json({
+          status: "fail to get user",
+          message: error.message,
+        });
+      }
+    });
+
+
+    // update single user
+    app.patch("/admin/users/:email", async (req, res) => {
+      try {
+        const user = req.params;
+        const updatedData = req.body;
+        const { status, role } = updatedData;
+        const filter = { email: user.email };
+        const updatedDoc = {
+          $set: {
+            status,
+            role,
+          },
+        };
+        const result = await User.updateOne(filter, updatedDoc);
+        res.status(200).json({
+          status: "success",
+          message: "User updated successfully",
+          result,
+        });
+      } catch (error) {
+        res.status(400).json({
+          status: "fail",
+          message: error.message,
+        });
+      }
+    });
+
+
+
 
 
     console.log("Database connected successfully");
